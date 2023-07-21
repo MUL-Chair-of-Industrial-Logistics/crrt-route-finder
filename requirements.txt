@@ -1,0 +1,8 @@
+numpy
+pandas
+shapely==1.8.5.post1 # because of set operations
+googlemaps
+matplotlib
+openrouteservice
+openpyxl
+folium

@@ -1,3 +1,19 @@
+# ignore inputs data
+inputs/*
+!inputs/.gitkeep
+
+# ignore output data
+output/*
+!output/.gitkeep
+
+# ignore temp data
+temp/*
+temp/.gitkeep
+
+# ignore API keys
+utils/api_keys.py
+
+# github python template for .gitignore file
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
