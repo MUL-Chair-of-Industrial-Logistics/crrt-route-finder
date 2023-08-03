@@ -98,7 +98,7 @@ def get_shipments_for_relation(df_shipments: pd.DataFrame, from_location_id: int
 
 
 def append_point(df, coords):
-    return df.append({'geometry': Point(coords)}, ignore_index=True)
+    return pd.concat([df, pd.DataFrame([{'geometry': Point(coords)}])], ignore_index=True)
 
 
 def get_section_with_second_intersection_point(section, df_intersection_points):
