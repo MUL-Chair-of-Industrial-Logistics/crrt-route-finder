@@ -54,8 +54,8 @@ def evaluate_contiguous_sections(min_freight_amount, min_d, df_contiguous_sectio
     # ax.set_ylim([90, 1200])
     ax.set_title("Section combinations having $f>f_{min}$ and $d>d_{min}$")
     fig.tight_layout()
-    plt.show()
-    # plt.savefig('output/subsections_paretofront_small.svg')
+    # plt.show()
+    plt.savefig('output/subsections_paretofront_small.svg')
 
 
 def get_pareto_front(Xs, Ys, data, maxX=True, maxY=True):
