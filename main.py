@@ -211,8 +211,7 @@ for relation_index, relation in df_relations.iterrows():
 
             # calculate intersection and add to the dataframe
             intersection = relation['shapely_geometry'].intersection(relation2['shapely_geometry'])
-            df_already_compared = df_already_compared.append(
-                {'relation_id_1': relation_id_1, 'relation_id_2': relation_id_2}, ignore_index=True)
+            df_already_compared = pd.concat([df_already_compared, pd.DataFrame([{'relation_id_1': relation_id_1, 'relation_id_2': relation_id_2}])], ignore_index=True)
 
             # extract intersection points from the intersection and add to the intersection points dataframe
             if not intersection.is_empty:
@@ -326,9 +325,7 @@ for relation_index, relation in df_relations.iterrows():
         # check if intersection point lies on the relation
         if not relation['shapely_geometry'].intersection(intersection_point['geometry']).is_empty:
             # if the intersection point lies on the relation, add it to the dataframe
-            df_intersection_points_on_relation = df_intersection_points_on_relation.append(
-                {'intersection_point_index': intersection_point_index, 'geometry': intersection_point['geometry']},
-                ignore_index=True)
+            df_intersection_points_on_relation = pd.concat([df_intersection_points_on_relation, pd.DataFrame([{'intersection_point_index': intersection_point_index, 'geometry': intersection_point['geometry']}])], ignore_index=True)
 
     # sort the intersection points by distance to the start of the relation
     df_intersection_points_on_relation['distance_on_line'] = df_intersection_points_on_relation['geometry'].apply(
@@ -354,13 +351,12 @@ for relation_index, relation in df_relations.iterrows():
         # if the current intersection point is the end of the relation, add the remaining linestring to the dataframe
         if intersection_point['geometry'] == Point(relation['shapely_geometry'].coords[-1]):
             if isinstance(remaining_linestring, LineString):
-                df_sections_on_relation = df_sections_on_relation.append(
-                    {'from_intersection_point_index':
+                df_sections_on_relation = pd.concat([df_sections_on_relation, pd.DataFrame([{'from_intersection_point_index':
                          df_intersection_points_on_relation.iloc[intersection_point_index - 1][
                              'intersection_point_index'],
                      'to_intersection_point_index': df_intersection_points_on_relation.iloc[intersection_point_index][
                          'intersection_point_index'],
-                     'geometry': remaining_linestring}, ignore_index=True)
+                     'geometry': remaining_linestring}])], ignore_index=True)
             else:
                 print(f'Error: remaining_linestring is not a LineString, but a {type(remaining_linestring)}')
             continue
@@ -372,13 +368,13 @@ for relation_index, relation in df_relations.iterrows():
             section = splitted_linestring.geoms[0]
             if isinstance(section, LineString):
                 # add the section to the dataframe
-                df_sections_on_relation = df_sections_on_relation.append(
-                    {'from_intersection_point_index':
+                df_sections_on_relation = pd.concat([df_sections_on_relation, pd.DataFrame([{'from_intersection_point_index':
                          df_intersection_points_on_relation.iloc[intersection_point_index - 1][
                              'intersection_point_index'],
                      'to_intersection_point_index': df_intersection_points_on_relation.iloc[intersection_point_index][
                          'intersection_point_index'],
-                     'geometry': section}, ignore_index=True)
+                     'geometry': section}])], ignore_index=True)
+                
                 remaining_linestring = splitted_linestring.geoms[1]
             else:
                 print(
@@ -504,12 +500,12 @@ for relation_index, relation in df_relations.iterrows():
                     if DEBUG:
                         print(
                             f'Adding shipments of relation {rel["from_location_id"]}_{rel["to_location_id"]} to the section combination...')
-            df_contiguous_section_combinations = df_contiguous_section_combinations.append({
+            df_contiguous_section_combinations = pd.concat([df_contiguous_section_combinations, pd.DataFrame([{
                 'from_intersection_point_index': from_intersection_point_index,
                 'to_intersection_point_index': to_intersection_point_index,
                 'geometry': section_combination,
                 'distance': distance,
-                'freight_amount': freight_amount}, ignore_index=True)
+                'freight_amount': freight_amount}])], ignore_index=True)
 
     # add the sections of the current relation to the dataframe containing all sections
     df_sections = pd.concat([df_sections, df_sections_on_relation], ignore_index=True)
