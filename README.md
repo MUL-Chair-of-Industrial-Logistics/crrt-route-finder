@@ -5,10 +5,7 @@ logistics network
 
 For methodological details please refer to the corresponding publication:
 
-* Miklautsch, P., Woschank, M. (2023). Decarbonizing Industrial Logistics Through a GIS-Based Approach for Identifying
-  Pareto-Optimal Combined Road-Rail Transport Routes. In: Borgianni, Y., Molinaro, M., Orzes, G., Matt, D.T. (eds)
-  Towards
-  a Smart, Resilient and Sustainable Industry. ISIEA 2023. Springer, Cham. https://doi.org/10.1007/978-3-031-38274-1_31
+* Miklautsch, P., Woschank, M. (2023). Decarbonizing Industrial Logistics Through a GIS-Based Approach for Identifying Pareto-Optimal Combined Road-Rail Transport Routes. In: Borgianni, Y., Matt, D.T., Molinaro, M., Orzes, G. (eds) Towards a Smart, Resilient and Sustainable Industry. ISIEA 2023. Lecture Notes in Networks and Systems, vol 745. Springer, Cham. https://doi.org/10.1007/978-3-031-38274-1_31
 
 ## Link between the code and the methodology
 
