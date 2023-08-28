@@ -10,10 +10,11 @@ from utils.spatial import *
 from utils.other import *
 
 # define the capacity of the smalles possible load unit, i.e., TEU
-MAX_TEU_CAPACITY_WEIGHT = 28.3  # tons
-MAX_TEU_CAPACITY_VOLUME = 33.1  # cubic meters
-MAX_TEU_CAPACITY_LOADING_LENGTH = 5.9  # meters
-MIN_UTILIZATION = 0.8  # minimum utilization of a load unit to be considered
+MAX_SEMI_TRAILER_CAPACITY_WEIGHT = 36  # tons
+MAX_SEMI_TRAILER_VOLUME = 101.18 # cubic meters
+MAX_SEMI_TRAILER_LOADING_LENGTH = 13.625  # meters
+MIN_UTILIZATION = 0  # minimum utilization of a load unit to be considered
+MAX_LM_CAPACITY = 13.600  # maximum Lademillimeter capacity
 
 # STEP 0
 # create a map to visualize the data
@@ -23,7 +24,7 @@ folium.TileLayer('openstreetmap').add_to(m)
 
 # STEP 1
 # read inputs excel to data frame and unify from_address, to_address, weight_in_tons, date
-df_input = pd.read_excel('inputs/shipments_2021.xlsx', sheet_name='Road_IMP', header=0, engine='openpyxl')
+df_input = pd.read_excel('inputs/shipments_2023.xlsx', sheet_name='Road_IMP', header=0, engine='openpyxl')
 
 df_input['from_address'] = df_input['Sender / Shipper Name'] + ', ' + df_input['Sender / Shipper City'] + ', ' + \
                            df_input['Shipper Country']
@@ -31,7 +32,7 @@ df_input['to_address'] = df_input['Consignee Name'] + ', ' + df_input['Consignee
                          df_input['Consignee Country']
 df_input['weight_in_tons'] = df_input['Gross weight (kgs)'] / 1000
 df_input['date'] = pd.to_datetime(df_input['Shipment Date'])
-
+df_input['load_m_capacity'] = df_input['Loading Meters'] / 1000
 # STEP 2
 # create locations dataframe, geocode location and store in temp/locations.json - or add new locations
 print('Setting up locations')
@@ -103,7 +104,7 @@ for location_index, location in df_locations.iterrows():
 # create relations and shipments dataframe and store in temp folder as relations.json and shipments.json, respectively
 print('\n---------------------------------')
 print('Setting up relations and shipments')
-df_shipments = df_input[['date', 'from_location_id', 'to_location_id', 'weight_in_tons']]
+df_shipments = df_input[['date', 'from_location_id', 'to_location_id', 'weight_in_tons', 'load_m_capacity']]
 store_dataframe_as_json(df_shipments, 'temp/shipments.json')
 df_shipments = read_json_to_dataframe('temp/shipments.json')
 if DEBUG:
@@ -477,20 +478,42 @@ for relation_index, relation in df_relations.iterrows():
                         isinstance(from_ip_on_relation, Point) and isinstance(to_ip_on_relation, Point):
                     # rel is a relation that contains the current section combination
                     # add the shipments of rel to the section combination
-
                     df_shipments_on_relation = get_shipments_for_relation(df_shipments, rel['from_location_id'],
                                                                           rel['to_location_id'])
+                    df_shipments_on_relation_per_week = \
+                    df_shipments_on_relation.groupby(df_shipments_on_relation['date'].dt.strftime('%U'))[
+                    'load_m_capacity'].sum().to_frame(name='load_m_capacity').reset_index()
+
+                    df_shipments_on_relation_per_week[
+                        'utilization'] = df_shipments_on_relation_per_week['load_m_capacity'] / MAX_LM_CAPACITY
+
+                    freight_amount = \
+                        df_shipments_on_relation_per_week[
+                        df_shipments_on_relation_per_week['utilization'] > MIN_UTILIZATION][
+                        'load_m_capacity'].sum()
+
+                    if DEBUG:
+                        print(
+                            f'Adding shipments of relation {rel["from_location_id"]}_{rel["to_location_id"]} to the section combination...')
+                    df_contiguous_section_combinations = pd.concat([df_contiguous_section_combinations, pd.DataFrame([{
+                        'from_intersection_point_index': from_intersection_point_index,
+                        'to_intersection_point_index': to_intersection_point_index,
+                        'geometry': section_combination,
+                        'distance': distance,
+                        'freight_amount': freight_amount}])], ignore_index=True)
+                        
+                    
 
                     # modify this according to your needs, i.e., weight, volume, loading meters, or a mix
                     # Purpose: ignore loading units that are not well utilized
 
                     # group the weight of the shipments by the calendar week of the shipment date
-                    df_shipments_on_relation_per_week = \
+                    '''df_shipments_on_relation_per_week = \
                         df_shipments_on_relation.groupby(df_shipments_on_relation['date'].dt.strftime('%U'))[
                             'weight_in_tons'].sum().to_frame(name='weight_in_tons').reset_index()
 
                     df_shipments_on_relation_per_week[
-                        'utilization'] = df_shipments_on_relation_per_week['weight_in_tons'] / MAX_TEU_CAPACITY_WEIGHT
+                        'utilization'] = df_shipments_on_relation_per_week['weight_in_tons'] / MAX_SEMI_TRAILER_CAPACITY_WEIGHT
 
                     freight_amount += \
                         df_shipments_on_relation_per_week[
@@ -505,7 +528,7 @@ for relation_index, relation in df_relations.iterrows():
                 'to_intersection_point_index': to_intersection_point_index,
                 'geometry': section_combination,
                 'distance': distance,
-                'freight_amount': freight_amount}])], ignore_index=True)
+                'freight_amount': freight_amount}])], ignore_index=True)'''
 
     # add the sections of the current relation to the dataframe containing all sections
     df_sections = pd.concat([df_sections, df_sections_on_relation], ignore_index=True)
@@ -544,8 +567,8 @@ print(f'{len(df_contiguous_section_combinations)} contiguous section combination
 # include a pareto frontier
 # the pareto frontier is the set of contiguous section combinations that are not dominated by any other contiguous section combination
 
-evaluate_contiguous_sections(min_freight_amount=100,
-                             min_d=100,
+evaluate_contiguous_sections(min_freight_amount=0,
+                             min_d=0,
                              df_contiguous_sections=df_contiguous_section_combinations)
 
 # LAST STEP
