@@ -1,0 +1,29 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: CRRT Route Finder
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Philipp
+    family-names: Miklautsch
+    email: philipp@miklautsch.eu
+    affiliation: >-
+      Chair of Industrial Logistics, Montanuniversitaet
+      Leoben
+    orcid: 'https://orcid.org/0000-0001-7004-1236'
+identifiers:
+  - type: doi
+    value: 10.1007/978-3-031-38274-1_31
+    description: The article describing the algorithm
+abstract: >-
+  This repository contains an algorithm to find promising
+  consolidation options for combined road-rail
+  transportation in a logistics network.
+keywords:
+  - green logistics
+  - combined transport
+license: BSD-3-Clause
